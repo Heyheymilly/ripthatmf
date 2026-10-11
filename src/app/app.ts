@@ -3,6 +3,14 @@ import { HttpClient } from '@angular/common/http';
 
 type SupportedProvider = 'soundcloud';
 
+function detectProvider(url:string) {
+  const hostname = new URL(url).hostname.replace.(/^www\./, '')
+  if (hostname === "soundcloud.com"){
+    return "soundcloud";
+  }
+
+  return null;
+}
 @Component({
   selector: 'app-root',
   imports: [],
@@ -15,6 +23,7 @@ export class App implements OnInit {
   protected readonly status = signal<'idle' | 'downloading' | 'ripped'>('idle');
   protected readonly backendStatus = signal<'checking' | 'online' | 'offline'>('checking');
   protected readonly currentUrl = signal<string | null>(null);
+  protected readonly provider = signal<SupportedProvider | null>(null);
 
   constructor(private readonly http: HttpClient) {}
 
@@ -77,10 +86,13 @@ export class App implements OnInit {
         this.pageTitle.set(tab.title ?? 'Untitled page');
         return;
       }
-
+      
       if (tab.url) {
         this.currentUrl.set(tab.url);
         this.website.set(new URL(tab.url).hostname);
+
+        const detectedProvider = detectProvider(tab.url)
+        this.provider.set(detectedProvider);
       }
 
       chrome.scripting.executeScript(

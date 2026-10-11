@@ -8,7 +8,11 @@
   @if (status() === 'ready') {
     Ripped!!!!!!1!!
   } @else {
-    <button type="button" (click)="rip()" [disabled]="status() === 'downloading'">
+    <button
+  type="button"
+  (click)="rip()"
+  [disabled]="status() === 'downloading' || !provider()"
+>
       @if (status() === 'downloading') {
         Downloading
       } @else {

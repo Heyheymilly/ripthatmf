@@ -47,3 +47,5 @@ Thumbs.db
 backend/.venv/
 __pycache__/
 *.pyc
+backend/input/
+backend/output/

@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Rip That MF",
+  "version": "0.1.0",
+  "description": "Rip audio from the current page.",
+  "action": {
+    "default_title": "Rip That MF",
+    "default_popup": "index.html"
+  },
+  "permissions": ["tabs","scripting"],
+  "host_permissions": ["<all_urls>"]
+}

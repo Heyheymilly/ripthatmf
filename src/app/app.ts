@@ -117,7 +117,16 @@ export class App implements OnInit {
           const domTitle = match?.result?.text;
           console.log('domTitle', domTitle);
 
-          this.pageTitle.set(domTitle || tab.title || 'Untitled page');
+          this.canDownload.set(Boolean(domTitle));
+          if (domTitle) {
+            this.pageTitle.set(domTitle);
+          } else if (
+            tab.title === 'Discover the top streamed music and songs online on Soundcloud'
+          ) {
+            this.pageTitle.set('Select a song and start rippin');
+          } else {
+            this.pageTitle.set(tab.title ?? 'Untitled page');
+          }
         },
       );
     });

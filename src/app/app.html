@@ -9,9 +9,9 @@
     Ripped!!!!!!1!!
   } @else {
     <button
-  type="button"
+  type="button" 
   (click)="rip()"
-  [disabled]="status() === 'downloading' || !provider()"
+  [disabled]="status() === 'downloading' || !provider() || !canDownload()"
 >
       @if (!provider()){
         No Music

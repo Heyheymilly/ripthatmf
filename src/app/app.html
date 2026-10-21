@@ -39,7 +39,7 @@
       <button type="button"(click)="backToMain()">Back</button>
       } @else {
       <p>Enter your path</p>
-      <input type="text" [value]="draftPath()">
+      <input type="text" [value]="draftPath()" (input)="updateDraftPath($event)">
       <button type="button" (click)="savePath()" class="small-button">Save</button>
       <button type="button" (click)="stopEditingPath()" class="small-button">Back</button>
       }

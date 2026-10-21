@@ -2,6 +2,7 @@ import { Component, signal, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 type SupportedProvider = 'soundcloud';
+type Page = 'main' | 'settings';
 
 function detectProvider(url:string): SupportedProvider | null {
   const hostname = new URL(url).hostname.replace(/^www\./, '');
@@ -25,6 +26,11 @@ export class App implements OnInit {
   protected readonly currentUrl = signal<string | null>(null);
   protected readonly provider = signal<SupportedProvider | null>(null);
   protected readonly canDownload = signal(false);
+  protected readonly currentPage = signal<Page>('main');
+  protected readonly outputPath = signal('C:\\Users\\milto\\Music\\Beginning\\converted');
+  protected readonly isEditingPath = signal(false);
+  protected readonly draftPath = signal('C:\\Users\\milto\\Music\\Beginning\\converted');
+
 
   constructor(private readonly http: HttpClient) {}
 
@@ -130,5 +136,31 @@ export class App implements OnInit {
         },
       );
     });
+  }
+  protected openSettings(): void {
+    this.currentPage.set('settings');
+    console.log(this.currentPage());
+  }
+
+  protected backToMain():void {
+    this.currentPage.set('main');
+  }
+
+  protected startEditingPath():void {
+    this.draftPath.set(this.outputPath())
+    this.isEditingPath.set(true);
+  }
+
+  protected stopEditingPath(): void {
+    this.isEditingPath.set(false);
+  }
+
+  protected savePath(): void {
+    this.outputPath.set(this.draftPath());
+  }
+
+  protected updateDraftPath(event:Event):void {
+    const input = event.target as HTMLInputElement;
+    this.draftPath.set(input.value);
   }
 }

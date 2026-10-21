@@ -1,25 +1,49 @@
 <main class="popup">
-  <h1>rip that mfgggg</h1>
-  <p class="backend-status">Backend: {{ backendStatus() }}</p>
-  <section class="track">
-    <p class="website">{{ website() }}</p>
-    <h2>{{ pageTitle() }}</h2>
-  </section>
-  @if (status() === 'ripped') {
-    Ripped!!!!!!1!!
+  @if (currentPage() === 'main'){
+    <h1>rip that mfgggg</h1>
+    <p class="backend-status">Backend: {{ backendStatus() }}</p>
+    <section class="track">
+      <p class="website">{{ website() }}</p>
+      <h2>
+        @if (provider() != 'soundcloud') {
+          Open Soundcloud and start rippin' tracks
+        } @else{
+          {{ pageTitle() }}
+        }
+      </h2>
+    </section>
+    <button type="button" (click)="openSettings()">Settings</button>
+    @if (status() === 'ripped') {
+      Ripped!!!!!!1!!
+    } @else {
+      <button
+    type="button"
+    (click)="rip()"
+    [disabled]="status() === 'downloading' || !provider() || !canDownload()"
+  >
+        @if (!provider()){
+          No Music
+        }@else if (status() === 'downloading') {
+          Downloading
+        } @else {
+          RIP
+        }
+      </button>
+    }
   } @else {
-    <button
-  type="button" 
-  (click)="rip()"
-  [disabled]="status() === 'downloading' || !provider() || !canDownload()"
->
-      @if (!provider()){
-        No Music
-      }@else if (status() === 'downloading') {
-        Downloading
+    <section class="settings">
+      <h2>Settings</h2>
+      @if (!isEditingPath()){
+      <p>File Path:{{ outputPath() }}</p>
+      <button type="button" class="small-button" (click)="startEditingPath()">Edit File Path</button>
+      <button type="button"(click)="backToMain()">Back</button>
       } @else {
-        RIP
+      <p>Enter your path</p>
+      <input type="text" [value]="draftPath()">
+      <button type="button" (click)="savePath()" class="small-button">Save</button>
+      <button type="button" (click)="stopEditingPath()" class="small-button">Back</button>
       }
-    </button>
+    </section>
+
   }
 </main>

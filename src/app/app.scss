@@ -29,6 +29,18 @@ button {
   cursor: pointer;
 }
 
+.small-button {
+  width: 40%;
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  background: #f5f5f5;
+  color: #111;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

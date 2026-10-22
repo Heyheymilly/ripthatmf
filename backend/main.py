@@ -7,6 +7,7 @@ import subprocess
 class ConvertRequest(BaseModel):
     url: str
     title: str
+    skipDuplicates: bool
 
 app = FastAPI()
 
@@ -19,24 +20,27 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-def download_audio(url:str) -> str:
+def download_audio(url:str, skip_duplicates:bool) -> str:
     if not url:
         raise ValueError("Missing URL")
     output_dir = Path(r"C:\Users\milto\Music\Beginning\converted")
     output_dir.mkdir(parents=True, exist_ok=True)
     output_template = output_dir / "%(title)s.%(ext)s"
 
-    subprocess.run(
-    [
+    command = [
         "yt-dlp",
         "-f",
         "bestaudio/best",
         "-o",
         str(output_template),
-        url,
-    ],
-    check=True,
-)     
+    ]
+
+    if skip_duplicates:
+        command.append("--no-overwrites")
+
+    command.append(url)
+
+    subprocess.run(command, check=True)
     return str(output_dir)
 
 @app.get("/health")
@@ -45,7 +49,7 @@ def health():
 
 @app.post("/convert")
 def convert(payload: ConvertRequest):
-    output_file = download_audio(payload.url)
+    output_file = download_audio(payload.url, payload.skipDuplicates)
 
     return {
         "status": "downloaded",

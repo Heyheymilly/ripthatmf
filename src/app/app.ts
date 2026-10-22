@@ -43,6 +43,7 @@ export class App implements OnInit {
   protected rip(): void {
     const url = this.currentUrl();
     const title = this.pageTitle();
+    const skipDuplicates = this.skipDuplicates();
 
     console.log('sending to backend:', {url,title});
     
@@ -51,6 +52,7 @@ export class App implements OnInit {
     this.http.post('http://localhost:8000/convert', {
       url,
       title,
+      skipDuplicates,
     }).subscribe({
       next: (response => {
         console.log('backend response:', response)
@@ -158,6 +160,7 @@ export class App implements OnInit {
 
   protected savePath(): void {
     this.outputPath.set(this.draftPath());
+    this.isEditingPath.set(false);
   }
 
   protected updateDraftPath(event:Event):void {

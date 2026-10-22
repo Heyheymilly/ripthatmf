@@ -43,7 +43,8 @@
       <button type="button" (click)="savePath()" class="small-button">Save</button>
       <button type="button" (click)="stopEditingPath()" class="small-button">Back</button>
       }
+      <input type="checkbox" id="skip-duplicates" [checked]="skipDuplicates()" (change)="updateDuplicateCheck($event)">
+      <label for="skip-duplicates">Skip Duplicates</label>
     </section>
-
   }
 </main>

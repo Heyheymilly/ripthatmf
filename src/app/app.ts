@@ -30,6 +30,7 @@ export class App implements OnInit {
   protected readonly outputPath = signal('C:\\Users\\milto\\Music\\Beginning\\converted');
   protected readonly isEditingPath = signal(false);
   protected readonly draftPath = signal('C:\\Users\\milto\\Music\\Beginning\\converted');
+  protected readonly skipDuplicates = signal(true)
 
 
   constructor(private readonly http: HttpClient) {}
@@ -162,5 +163,10 @@ export class App implements OnInit {
   protected updateDraftPath(event:Event):void {
     const input = event.target as HTMLInputElement;
     this.draftPath.set(input.value);
+  }
+
+  protected updateDuplicateCheck(event:Event): void {
+    const input = event.target as HTMLInputElement;
+    this.skipDuplicates.set(input.checked);
   }
 }

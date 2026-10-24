@@ -1,13 +1,19 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pathlib import Path
 import subprocess
+import uuid
+import re
+import threading
+
+jobs = {}
 
 class ConvertRequest(BaseModel):
     url: str
     title: str
     skipDuplicates: bool
+    outputPath:str
 
 app = FastAPI()
 
@@ -20,15 +26,17 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-def download_audio(url:str, skip_duplicates:bool) -> str:
+def download_audio(url:str,skip_duplicates:bool,output_path: str,job_id:str,) -> str:
+
     if not url:
         raise ValueError("Missing URL")
-    output_dir = Path(r"C:\Users\milto\Music\Beginning\converted")
+    output_dir = Path(output_path)
     output_dir.mkdir(parents=True, exist_ok=True)
     output_template = output_dir / "%(title)s.%(ext)s"
 
     command = [
         "yt-dlp",
+        "--newline",
         "-f",
         "bestaudio/best",
         "-o",
@@ -40,7 +48,25 @@ def download_audio(url:str, skip_duplicates:bool) -> str:
 
     command.append(url)
 
-    subprocess.run(command, check=True)
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        )
+    for line in process.stdout:
+        match = re.search(r"(\d+(?:\.\d+)?)%", line)
+
+        if match:
+            jobs[job_id]["progress"] = float(match.group(1))
+
+    if process.wait() == 0:
+        jobs[job_id]["status"] = "complete"
+        jobs[job_id]["progress"] = 100
+
+    else:
+        jobs[job_id]["status"] = "failed"
+
     return str(output_dir)
 
 @app.get("/health")
@@ -49,9 +75,30 @@ def health():
 
 @app.post("/convert")
 def convert(payload: ConvertRequest):
-    output_file = download_audio(payload.url, payload.skipDuplicates)
+    job_id = str(uuid.uuid4())
+
+    jobs[job_id]= {
+        "status": "downloading",
+        "progress": 0
+    }
+    thread = threading.Thread(
+        target = download_audio,
+        args=(
+            payload.url,
+            payload.skipDuplicates,
+            payload.outputPath,
+            job_id,
+        ),
+        daemon = True,
+    )
+    thread.start()
 
     return {
-        "status": "downloaded",
-        "file": output_file,
+        "jobid": job_id,
     }
+
+@app.get("/progress/{job_id}")
+def get_progress(job_id: str):
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Download job not found")
+    return jobs[job_id]

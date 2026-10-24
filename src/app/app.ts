@@ -31,7 +31,7 @@ export class App implements OnInit {
   protected readonly isEditingPath = signal(false);
   protected readonly draftPath = signal('C:\\Users\\milto\\Music\\Beginning\\converted');
   protected readonly skipDuplicates = signal(true)
-
+  protected readonly downloadProgress = signal(0)
 
   constructor(private readonly http: HttpClient) {}
 
@@ -44,6 +44,7 @@ export class App implements OnInit {
     const url = this.currentUrl();
     const title = this.pageTitle();
     const skipDuplicates = this.skipDuplicates();
+    const outputPath = this.outputPath();
 
     console.log('sending to backend:', {url,title});
     
@@ -53,6 +54,7 @@ export class App implements OnInit {
       url,
       title,
       skipDuplicates,
+      outputPath,
     }).subscribe({
       next: (response => {
         console.log('backend response:', response)

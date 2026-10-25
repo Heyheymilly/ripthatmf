@@ -50,21 +50,26 @@ export class App implements OnInit {
     
     this.status.set('downloading');
 
-    this.http.post('http://localhost:8000/convert', {
+    this.http.post<{jobid:string}>('http://localhost:8000/convert', {
       url,
       title,
       skipDuplicates,
       outputPath,
     }).subscribe({
-      next: (response => {
+      next: (response => {  
         console.log('backend response:', response)
-        this.status.set('ripped');
+        const jobId = response.jobid
+        this.pollProgress(jobId)
+
       }),
       error:(error) => {
         console.error('backend error:', error);
         this.status.set('idle');
       }
     })
+
+    this.downloadProgress.set(0);
+    this.status.set('downloading');
   }
 
   protected cancel(): void {
@@ -73,17 +78,6 @@ export class App implements OnInit {
 
   protected confirm(): void {
     console.log('confirmed rip');
-  }
-
-  private checkBackend(): void {
-    this.http.get<{ status: string }>('http://localhost:8000/health').subscribe({
-      next: () => {
-        this.backendStatus.set('online');
-      },
-      error: () => {
-        this.backendStatus.set('offline');
-      },
-    });
   }
 
   private loadCurrentTab(): void {
@@ -173,5 +167,40 @@ export class App implements OnInit {
   protected updateDuplicateCheck(event:Event): void {
     const input = event.target as HTMLInputElement;
     this.skipDuplicates.set(input.checked);
+  }
+
+  protected pollProgress(jobId: string): void {
+  this.http.get<{ progress: number; status: string }>(
+    `http://localhost:8000/progress/${jobId}`,
+  ).subscribe({
+    next: (response) => {
+      this.downloadProgress.set(response.progress);
+
+      if (response.status === 'complete') {
+        this.status.set('ripped');
+        console.log('download is finished yay')
+
+      } else if (response.status === 'failed') {
+        this.status.set('idle');
+      } else {
+        setTimeout(() => this.pollProgress(jobId), 500);
+      }
+    },
+    error: (error) => {
+      console.error('progress error:', error);
+      this.status.set('idle');
+    },
+  });
+}
+
+ private checkBackend(): void {
+    this.http.get<{ status: string }>('http://localhost:8000/health').subscribe({
+      next: () => {
+        this.backendStatus.set('online');
+      },
+      error: () => {
+        this.backendStatus.set('offline');
+      },
+    });
   }
 }

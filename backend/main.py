@@ -63,12 +63,13 @@ def download_audio(url:str,skip_duplicates:bool,output_path: str,job_id:str,) ->
     if process.wait() == 0:
         jobs[job_id]["status"] = "complete"
         jobs[job_id]["progress"] = 100
+        print("download completed succesfully yay!")
 
     else:
         jobs[job_id]["status"] = "failed"
 
     return str(output_dir)
-
+    
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -101,4 +102,5 @@ def convert(payload: ConvertRequest):
 def get_progress(job_id: str):
     if job_id not in jobs:
         raise HTTPException(status_code=404, detail="Download job not found")
+    
     return jobs[job_id]

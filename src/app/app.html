@@ -1,5 +1,5 @@
 <main class="popup">
-  @if (currentPage() === 'main'){
+  @if (currentPage() === 'main') {
     <h1>rip that mfgggg</h1>
     <p class="backend-status">Backend: {{ backendStatus() }}</p>
     <section class="track">
@@ -7,7 +7,7 @@
       <h2>
         @if (provider() != 'soundcloud') {
           Open Soundcloud and start rippin' tracks
-        } @else{
+        } @else {
           {{ pageTitle() }}
         }
       </h2>
@@ -15,16 +15,31 @@
     <button type="button" (click)="openSettings()">Settings</button>
     @if (status() === 'ripped') {
       Ripped!!!!!!1!!
+      <button type="button">open file location</button>
+    } @else if (status() === 'downloading') {
+      <section class="download-progress">
+        <div
+          class="progress-track"
+          role="progressbar"
+          [attr.aria-valuenow]="downloadProgress()"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div class="progress-fill" [style.width.%]="downloadProgress()"></div>
+        </div>
+        <p>Downloading {{ downloadProgress() }}%</p>
+      </section>
     } @else {
       <button
-    type="button"
-    (click)="rip()"
-    [disabled]="status() === 'downloading' || !provider() || !canDownload()"
-  >
-        @if (!provider()){
+        type="button"
+        (click)="rip()"
+        [disabled]="status() === 'downloading' || !provider() || !canDownload()"
+      >
+        @if (!provider()) {
           No Music
-        }@else if (status() === 'downloading') {
+        } @else if (status() === 'downloading') {
           Downloading
+          {{ downloadProgress() }} %
         } @else {
           RIP
         }
@@ -33,17 +48,24 @@
   } @else {
     <section class="settings">
       <h2>Settings</h2>
-      @if (!isEditingPath()){
-      <p>File Path:{{ outputPath() }}</p>
-      <button type="button" class="small-button" (click)="startEditingPath()">Edit File Path</button>
-      <button type="button"(click)="backToMain()">Back</button>
+      @if (!isEditingPath()) {
+        <p>File Path:{{ outputPath() }}</p>
+        <button type="button" class="small-button" (click)="startEditingPath()">
+          Edit File Path
+        </button>
+        <button type="button" (click)="backToMain()">Back</button>
       } @else {
-      <p>Enter your path</p>
-      <input type="text" [value]="draftPath()" (input)="updateDraftPath($event)">
-      <button type="button" (click)="savePath()" class="small-button">Save</button>
-      <button type="button" (click)="stopEditingPath()" class="small-button">Back</button>
+        <p>Enter your path</p>
+        <input type="text" [value]="draftPath()" (input)="updateDraftPath($event)" />
+        <button type="button" (click)="savePath()" class="small-button">Save</button>
+        <button type="button" (click)="stopEditingPath()" class="small-button">Back</button>
       }
-      <input type="checkbox" id="skip-duplicates" [checked]="skipDuplicates()" (change)="updateDuplicateCheck($event)">
+      <input
+        type="checkbox"
+        id="skip-duplicates"
+        [checked]="skipDuplicates()"
+        (change)="updateDuplicateCheck($event)"
+      />
       <label for="skip-duplicates">Skip Duplicates</label>
     </section>
   }

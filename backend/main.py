@@ -80,7 +80,8 @@ def convert(payload: ConvertRequest):
 
     jobs[job_id]= {
         "status": "downloading",
-        "progress": 0
+        "progress": 0,
+        "output_path": payload.outputPath
     }
     thread = threading.Thread(
         target = download_audio,
@@ -96,7 +97,7 @@ def convert(payload: ConvertRequest):
 
     return {
         "jobid": job_id,
-    }
+    } 
 
 @app.get("/progress/{job_id}")
 def get_progress(job_id: str):
@@ -104,3 +105,13 @@ def get_progress(job_id: str):
         raise HTTPException(status_code=404, detail="Download job not found")
     
     return jobs[job_id]
+
+@app.post("/open-folder/{job_id}")
+def open_folder(job_id):
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Download job not found")
+    
+    subprocess.Popen(["explorer", jobs[job_id]["output_path"]])
+
+    return {"status": "opened"}
+

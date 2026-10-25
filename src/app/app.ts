@@ -4,10 +4,10 @@ import { HttpClient } from '@angular/common/http';
 type SupportedProvider = 'soundcloud';
 type Page = 'main' | 'settings';
 
-function detectProvider(url:string): SupportedProvider | null {
+function detectProvider(url: string): SupportedProvider | null {
   const hostname = new URL(url).hostname.replace(/^www\./, '');
-  if (hostname === "soundcloud.com"){
-    return "soundcloud";
+  if (hostname === 'soundcloud.com') {
+    return 'soundcloud';
   }
 
   return null;
@@ -30,8 +30,8 @@ export class App implements OnInit {
   protected readonly outputPath = signal('C:\\Users\\milto\\Music\\Beginning\\converted');
   protected readonly isEditingPath = signal(false);
   protected readonly draftPath = signal('C:\\Users\\milto\\Music\\Beginning\\converted');
-  protected readonly skipDuplicates = signal(true)
-  protected readonly downloadProgress = signal(0)
+  protected readonly skipDuplicates = signal(true);
+  protected readonly downloadProgress = signal(0);
 
   constructor(private readonly http: HttpClient) {}
 
@@ -46,27 +46,28 @@ export class App implements OnInit {
     const skipDuplicates = this.skipDuplicates();
     const outputPath = this.outputPath();
 
-    console.log('sending to backend:', {url,title});
-    
+    console.log('sending to backend:', { url, title });
+
     this.status.set('downloading');
 
-    this.http.post<{jobid:string}>('http://localhost:8000/convert', {
-      url,
-      title,
-      skipDuplicates,
-      outputPath,
-    }).subscribe({
-      next: (response => {  
-        console.log('backend response:', response)
-        const jobId = response.jobid
-        this.pollProgress(jobId)
-
-      }),
-      error:(error) => {
-        console.error('backend error:', error);
-        this.status.set('idle');
-      }
-    })
+    this.http
+      .post<{ jobid: string }>('http://localhost:8000/convert', {
+        url,
+        title,
+        skipDuplicates,
+        outputPath,
+      })
+      .subscribe({
+        next: (response) => {
+          console.log('backend response:', response);
+          const jobId = response.jobid;
+          this.pollProgress(jobId);
+        },
+        error: (error) => {
+          console.error('backend error:', error);
+          this.status.set('idle');
+        },
+      });
 
     this.downloadProgress.set(0);
     this.status.set('downloading');
@@ -91,7 +92,7 @@ export class App implements OnInit {
         this.currentUrl.set(tab.url);
         this.website.set(new URL(tab.url).hostname);
 
-        const detectedProvider = detectProvider(tab.url)
+        const detectedProvider = detectProvider(tab.url);
         this.provider.set(detectedProvider);
       }
       const tabId = tab.id;
@@ -141,12 +142,12 @@ export class App implements OnInit {
     console.log(this.currentPage());
   }
 
-  protected backToMain():void {
+  protected backToMain(): void {
     this.currentPage.set('main');
   }
 
-  protected startEditingPath():void {
-    this.draftPath.set(this.outputPath())
+  protected startEditingPath(): void {
+    this.draftPath.set(this.outputPath());
     this.isEditingPath.set(true);
   }
 
@@ -159,47 +160,57 @@ export class App implements OnInit {
     this.isEditingPath.set(false);
   }
 
-  protected updateDraftPath(event:Event):void {
+  protected updateDraftPath(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.draftPath.set(input.value);
   }
 
-  protected updateDuplicateCheck(event:Event): void {
+  protected updateDuplicateCheck(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.skipDuplicates.set(input.checked);
   }
 
   protected pollProgress(jobId: string): void {
-  this.http.get<{ progress: number; status: string }>(
-    `http://localhost:8000/progress/${jobId}`,
-  ).subscribe({
-    next: (response) => {
-      this.downloadProgress.set(response.progress);
+    this.http
+      .get<{ progress: number; status: string }>(`http://localhost:8000/progress/${jobId}`)
+      .subscribe({
+        next: (response) => {
+          this.downloadProgress.set(response.progress);
 
-      if (response.status === 'complete') {
-        this.status.set('ripped');
-        console.log('download is finished yay')
+          if (response.status === 'complete') {
+            this.status.set('ripped');
+            console.log('download is finished yay');
+          } else if (response.status === 'failed') {
+            this.status.set('idle');
+          } else {
+            setTimeout(() => this.pollProgress(jobId), 500);
+          }
+        },
+        error: (error) => {
+          console.error('progress error:', error);
+          this.status.set('idle');
+        },
+      });
+  }
 
-      } else if (response.status === 'failed') {
-        this.status.set('idle');
-      } else {
-        setTimeout(() => this.pollProgress(jobId), 500);
-      }
-    },
-    error: (error) => {
-      console.error('progress error:', error);
-      this.status.set('idle');
-    },
-  });
-}
-
- private checkBackend(): void {
+  private checkBackend(): void {
     this.http.get<{ status: string }>('http://localhost:8000/health').subscribe({
       next: () => {
         this.backendStatus.set('online');
       },
       error: () => {
         this.backendStatus.set('offline');
+      },
+    });
+  }
+
+  protected openFolder(jobId: string): void {
+    this.http.post<{ status: string }>('http://localhost:8000/open-folder/${jobId}', {}).subscribe({
+      next: () => {
+        console.log('opened folder');
+      },
+      error: (error) => {
+        console.error("could not open folder:", error);
       },
     });
   }

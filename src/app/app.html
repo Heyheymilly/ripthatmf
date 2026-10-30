@@ -15,7 +15,7 @@
     <button type="button" (click)="openSettings()">Settings</button>
     @if (status() === 'ripped') {
       Ripped!!!!!!1!!
-      <button type="button">open file location</button>
+      <button type="button" (click)="openFolder()" >open file location</button>
     } @else if (status() === 'downloading') {
       <section class="download-progress">
         <div
@@ -37,9 +37,6 @@
       >
         @if (!provider()) {
           No Music
-        } @else if (status() === 'downloading') {
-          Downloading
-          {{ downloadProgress() }} %
         } @else {
           RIP
         }

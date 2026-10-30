@@ -32,6 +32,8 @@ export class App implements OnInit {
   protected readonly draftPath = signal('C:\\Users\\milto\\Music\\Beginning\\converted');
   protected readonly skipDuplicates = signal(true);
   protected readonly downloadProgress = signal(0);
+  protected readonly completedJobId = signal<string | null>(null);
+  
 
   constructor(private readonly http: HttpClient) {}
 
@@ -41,6 +43,7 @@ export class App implements OnInit {
   }
 
   protected rip(): void {
+    this.completedJobId.set(null);
     const url = this.currentUrl();
     const title = this.pageTitle();
     const skipDuplicates = this.skipDuplicates();
@@ -180,6 +183,7 @@ export class App implements OnInit {
           if (response.status === 'complete') {
             this.status.set('ripped');
             console.log('download is finished yay');
+            this.completedJobId.set(jobId);
           } else if (response.status === 'failed') {
             this.status.set('idle');
           } else {
@@ -204,8 +208,12 @@ export class App implements OnInit {
     });
   }
 
-  protected openFolder(jobId: string): void {
-    this.http.post<{ status: string }>('http://localhost:8000/open-folder/${jobId}', {}).subscribe({
+  protected openFolder(): void {
+    const jobId = this.completedJobId();
+    if (!jobId) {
+      return;
+    }
+    this.http.post<{ status: string }>(`http://localhost:8000/open-folder/${jobId}`, {}).subscribe({
       next: () => {
         console.log('opened folder');
       },
